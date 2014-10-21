@@ -15,7 +15,6 @@ window.addEventListener('DOMContentLoaded', function() {
   navigator.mozL10n.once(start);
 
   // ---
-    console.log("CACA");
   function start() {
     
     var message = document.getElementById('message');
@@ -31,7 +30,7 @@ window.addEventListener('DOMContentLoaded', function() {
 	var httpRequest;
 	document.getElementById("message").onclick = function() { makeRequest('https://api.jcdecaux.com/vls/v1/stations/?contract=Paris&apiKey='+JcDecauxKey); };
 	var markers = L.markerClusterGroup({
-			maxClusterRadius: 120,
+			maxClusterRadius: 50,
 			iconCreateFunction: function (cluster) {
 				var markers = cluster.getAllChildMarkers();
 				var n = 0;
@@ -54,7 +53,7 @@ window.addEventListener('DOMContentLoaded', function() {
 	// add an OpenStreetMap tile layer
 	MapQuestOpen_OSM.addTo(map);
 	var MarkerList = new Array(velib.length);
-	console.log(velib.length);
+	// console.log(velib.length);
 	function findMarker(num){
 		var lim = velib.length
 		for (var i = 0; i <lim; i++) {
@@ -103,8 +102,9 @@ window.addEventListener('DOMContentLoaded', function() {
 			var response = JSON.parse(httpRequest.responseText);
 			response.forEach(function(element, index, array){
 				var curStation = findMarker(element["number"]);
-				// console.log('Number '+element["number"] +' ssecret id :'+  curStation+' '+MarkerList.length);
-				// console.log( MarkerList[curStation])
+				 //console.log('Number '+element["number"] +' ssecret id :'+  curStation+' '+MarkerList.length);
+				//console.log( MarkerList[curStation])
+				//console.log(element)
 				var myIcon = new L.NumberedDivIcon({number: element["bike_stands"]});
 				MarkerList[curStation]["view"].setIcon(myIcon);
 				MarkerList[curStation]["view"].bike_stand=element["bike_stands"];

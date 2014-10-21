@@ -21,7 +21,7 @@
   "locales": {
     "fr": {
       "name": "Velicity",
-      "description": "Visualiser les velib!",
+      "description": "Trouver les velibs autour de vous!",
       "permissions": {}
     }
   },
