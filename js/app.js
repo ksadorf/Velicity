@@ -22,11 +22,11 @@ window.addEventListener('DOMContentLoaded', function() {
     // We're using textContent because inserting content from external sources into your page using innerHTML can be dangerous.
     // https://developer.mozilla.org/Web/API/Element.innerHTML#Security_considerations
     message.textContent = translate('message');
-	var map = L.map('map', {zoomControl:false }).setView([48.8567, 2.3508], 16);
+	var map = L.map('map', {zoomControl:false }).setView([48.8567, 2.3508], 17);
 	var MapQuestOpen_OSM =L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 	    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
 	    format: 'jpg80',
-	    minZoom: 14,
+	    minZoom: 16,
 	    maxZoom:19,
 	    tileSize: 256,
 	    reuseTiles: true, 
@@ -57,8 +57,8 @@ window.addEventListener('DOMContentLoaded', function() {
 	    alert(e.message);
 	}
 
-	map.on('locationerror', onLocationError);
-	map.on('locationfound', onLocationFound);
+	// map.on('locationerror', onLocationError);
+	// map.on('locationfound', onLocationFound);
 	var MarkerList = new Array(velib.length);
 	// console.log(velib.length);
 	function findMarker(num){
