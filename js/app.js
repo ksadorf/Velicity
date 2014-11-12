@@ -22,10 +22,14 @@ window.addEventListener('DOMContentLoaded', function() {
     // We're using textContent because inserting content from external sources into your page using innerHTML can be dangerous.
     // https://developer.mozilla.org/Web/API/Element.innerHTML#Security_considerations
     message.textContent = translate('message');
-    var map = L.map('map').setView([48.8567, 2.3508], 13);
-	var MapQuestOpen_OSM = L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpeg', {
-		attribution: 'Tiles Courtesy of <a href="http://www.mapquest.com/">MapQuest</a> &mdash; Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-		subdomains: '1234'
+	var map = L.map('map', {zoomControl:false }).setView([48.8567, 2.3508], 16);
+	var MapQuestOpen_OSM =L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+	    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+	    format: 'jpg80',
+	    minZoom: 14,
+	    maxZoom:19,
+	    tileSize: 256,
+	    reuseTiles: true, 
 	});
 	var httpRequest;
 	document.getElementById("message").onclick = function() { makeRequest('https://api.jcdecaux.com/vls/v1/stations/?contract=Paris&apiKey='+JcDecauxKey); };
@@ -33,25 +37,28 @@ window.addEventListener('DOMContentLoaded', function() {
 			maxClusterRadius: 50,
 			iconCreateFunction: function (cluster) {
 				var markers = cluster.getAllChildMarkers();
-				var n = 0;
-				for (var i = 0; i < markers.length; i++) {
-					n += markers[i].bike_stand;
-				}
-				var c = ' marker-cluster-';
-                if (n > 40) {
-                    c += 'small';
-                } else if (n > 30) {
-                    c += 'medium';
-                } else {
-                 c += 'large';
-                }
-                return new L.DivIcon({ html: '<div><span>' + n + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+
+				var c = ' marker-cluster-small';
+
+                return new L.DivIcon({ html: '<div><span>' + markers.length + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
 			},
 			//Disable all of the defaults:
 			spiderfyOnMaxZoom: false, showCoverageOnHover: false
 		});
 	// add an OpenStreetMap tile layer
 	MapQuestOpen_OSM.addTo(map);
+	map.locate({setView: true, maxZoom: 17});
+	function onLocationFound(e) {
+	    var radius = e.accuracy / 2;
+	    L.marker(e.latlng).addTo(map);
+	    L.circle(e.latlng, radius).addTo(map);
+	}
+	function onLocationError(e) {
+	    alert(e.message);
+	}
+
+	map.on('locationerror', onLocationError);
+	map.on('locationfound', onLocationFound);
 	var MarkerList = new Array(velib.length);
 	// console.log(velib.length);
 	function findMarker(num){
@@ -62,13 +69,19 @@ window.addEventListener('DOMContentLoaded', function() {
 			}
 		}
 	}
+	function formatStation(s){
+		var sName=s["name"].replace(/\d* - /, "");
+		var n=sName.charAt(0).toUpperCase() + sName.slice(1).toLowerCase();
+		if ( s["available_bike_stands"]=== undefined  || s["available_bikes"]=== undefined){
+			return '<p>'+n+'</p>';
+		}
+		return '<p>'+n+'</p>'+'<p>'+s["available_bikes"]+'/'+ s["available_bike_stands"]+'</p>'
+	}
 	function addMarker(element, index, array) {
 		// console.log('a[' + index + '] = ' + element["latitude"] + " "+ element["longitude"]);		
-		var marker = this.marker([element["position"]["lat"],  element["position"]["lng"]], {icon:new L.NumberedDivIcon({number: element["bike_stands"]})})
-				.bindPopup('<p>Velo libre ?</p>'
-									+'<p>Place libre ?</p>'
-									+'<p>Total '+element["bike_stands"]+'</p>');
-		marker.bike_stand=element["bike_stands"];
+		var marker = this.marker([element["latitude"],  element["longitude"]])
+				.bindPopup(formatStation(element));
+		marker.bike_stand=1;
 		MarkerList[index] = {"place": 45, "view":marker};
 		markers.addLayer(marker);
 	}
@@ -105,13 +118,9 @@ window.addEventListener('DOMContentLoaded', function() {
 				 //console.log('Number '+element["number"] +' ssecret id :'+  curStation+' '+MarkerList.length);
 				//console.log( MarkerList[curStation])
 				//console.log(element)
-				var myIcon = new L.NumberedDivIcon({number: element["bike_stands"]});
-				MarkerList[curStation]["view"].setIcon(myIcon);
 				MarkerList[curStation]["view"].bike_stand=element["bike_stands"];
 				var curPop = MarkerList[curStation]["view"].getPopup();
-				curPop.setContent('<p>Velo libre '+element["available_bikes"]+'</p>'
-									+'<p>Place libre '+element["available_bike_stands"]+'</p>'
-									+'<p>Total '+element["bike_stands"]+'</p>');
+				curPop.setContent(formatStation(element));
 				curPop.update();
 			    }
 			);
